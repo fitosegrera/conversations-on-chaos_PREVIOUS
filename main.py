@@ -32,7 +32,7 @@ def getWords(initConcept, w):
 def run():
 	global origin, weight, inc, cycle
 	
-	datasound.generate()
+	datasound.generate(60)
 	time.sleep(5)
 
 	tosay = cn.lookup(language, origin, True)
