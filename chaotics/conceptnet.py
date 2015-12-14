@@ -6,6 +6,7 @@
 
 import json
 import urllib2
+import time
 
 class ConceptNet:
 
@@ -18,9 +19,12 @@ class ConceptNet:
 		r=0
 		while response is None and r < max_attempts:
 			try:
+				print ""
+				print "Fetching Data..."
+				print ""
 			 	response = urllib2.urlopen(data)
 			except urllib2.URLError:
-				r=r+1
+				r += 1
 				print "Re-trying, attempt -- ",r
 				time.sleep(5)
 				pass
@@ -29,11 +33,15 @@ class ConceptNet:
 
 	def lookup(self, lang, term, verbose):
 		toReturn = None
-		url_to_search = self.url + "c/" + lang + "/" + term
+		url_to_search = self.url + "c/" + lang + "/" + term + "?offset=5&limit=6"
 		data = self.urlopen_with_retry(url_to_search)
 		json_data = json.load(data)
 		print url_to_search
 		termCount = 0
+		print ""
+		print "TERM:", term
+		print ""
+		print "////////////////////////////////////"
 		for i in json_data["edges"]:
 			if verbose:
 				print "----------------"
@@ -42,23 +50,14 @@ class ConceptNet:
 				print i["surfaceEnd"]
 				print i["surfaceStart"]
 				print "weight:", i["weight"]
-			if i["rel"] == "/r/IsA":
-				parsed = i["end"].split("/n/")
-				if len(parsed) < 1:
-					tmpstr = parsed[1]
-					for ch in tmpstr:
-						if ch == "_":
-							 tmpstr=tmpstr.replace(ch, " ")
-					toReturn = tmpstr
-					break
 
-			if termCount >= len(json_data["edges"]) - 1:
-				toReturn = None
-
-			termCount += 1
-
-		return toReturn
-
+			if len(i["end"]) > (len("/c/en/")+len(term)):
+				parsed = self.splitter(json_data["edges"][0]["end"])
+				print "#################"
+				print parsed
+				print "#################"
+				return parsed
+				break
 
 	def relation(self, rel, concept, verbose):
 		url_to_search = self.url + "search?rel=/r/" + rel +"&end=/c/en/" + concept
@@ -78,6 +77,8 @@ class ConceptNet:
 		data = self.urlopen_with_retry(url_to_search)
 		json_data = json.load(data)
 		
+		print ""
+		print "////////////////////////////////////"
 		print url_to_search
 		for i in json_data["similar"]:
 			print "----------------"
@@ -89,4 +90,17 @@ class ConceptNet:
 				print j
 				termCount += 1
 
-		return toReturn		
+		return toReturn
+
+	def splitter(self, data):
+		split = None
+		for char in range(len(data)):
+			index = len(data)-1-char
+			if index >= 0:
+				if data[index] == '/':
+					print "****************"
+					print char
+					split = data[index+1:len(data)]
+					break
+		return split
+

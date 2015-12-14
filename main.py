@@ -2,11 +2,13 @@
 
 from chaotics import conceptnet
 from chaotics import conversation
+from chaotics import noise
 import random
 import time
 
 cn = conceptnet.ConceptNet()
 speak = conversation.Conversation()
+datasound = noise.Noise()
 
 language = "en"
 rel = "RelatedTo" #more info at: https://github.com/commonsense/conceptnet5/wiki/Relations
@@ -29,6 +31,21 @@ def getWords(initConcept, w):
 
 def run():
 	global origin, weight, inc, cycle
+	
+	datasound.generate()
+	time.sleep(5)
+
+	tosay = cn.lookup(language, origin, True)
+	if tosay == None:
+		tosay = origin
+	print ""
+	print "@@@@@@@@@@@@@@@@@@@"
+	print "TO SAY:", tosay
+	print "@@@@@@@@@@@@@@@@@@@"
+	print ""
+	speak.say(str(tosay))
+
+	print ""
 	print "////////////////////////////////////"
 	print "origin: chaos --> destination: order"
 	print "cycle:", cycle
@@ -37,14 +54,10 @@ def run():
 	origin = throwPendulum(words)
 	print "evolved idea:", origin
 	print "current edge weight:", weight
+	print "////////////////////////////////////"
+	print ""
 
-	tosay = cn.lookup(language, origin, True)
-	if tosay == None:
-		tosay = origin
-	print tosay
-	speak.say(str(tosay))
-	
-	weight += inc
+	weight += random.random() * (0.01 - 0.001) + 0.001
 	cycle += 1
 
 if __name__ == "__main__":
